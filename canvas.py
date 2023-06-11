@@ -6,11 +6,15 @@ class Canvas:
     def __init__(self, matrix, genome, network):
         self.matrix = matrix
         self.squares, self.colorPath, self.colors = prepareVars(matrix)
+        self.squaresLeft = deepcopy(self.squares)
         self.activeString = None
         self.genome = genome
         self.network = network
         self.mashedInput = self.generateMashed()
 
+    def getColorPath(self):
+        return self.colorPath
+    
     def colorSquare(self, square):
         if square.completed:
             return False
@@ -45,30 +49,34 @@ class Canvas:
         if top:
             if square.isHalf:
                 self.colorPath[square.color]["stringUsed"] += sqrt((abs(lastHole[0] - square.TR[0]) ** 2) + (abs(lastHole[1] - square.TR[1]) ** 2))
-                self.colorPath[square.color]["path"].append({"hole": square.TR, "direction": "up"})
+                self.colorPath[square.color]["path"].append({"hole": square.TR, "direction": "up","currentString": self.colorPath[square.color]["stringUsed"]})
                 self.colorPath[square.color]["stringUsed"] += sqrt(2)
-                self.colorPath[square.color]["path"].append({"hole": square.BL, "direction": "down"})
+                self.colorPath[square.color]["path"].append({"hole": square.BL, "direction": "down","currentString": self.colorPath[square.color]["stringUsed"]})
                 square.completed = True
                 self.colorPath[square.color]["completed"] += 1
+                self.colorPath[square.color]["left"] -= 1
+                self.squaresLeft.remove(square)
             else:
                 self.colorPath[square.color]["stringUsed"] += sqrt((abs(lastHole[0] - square.TL[0]) ** 2) + (abs(lastHole[1] - square.TL[1]) ** 2))
-                self.colorPath[square.color]["path"].append({"hole": square.TL, "direction": "up"})
+                self.colorPath[square.color]["path"].append({"hole": square.TL, "direction": "up","currentString": self.colorPath[square.color]["stringUsed"]})
                 self.colorPath[square.color]["stringUsed"] += sqrt(2)
-                self.colorPath[square.color]["path"].append({"hole": square.BR, "direction": "down"})
+                self.colorPath[square.color]["path"].append({"hole": square.BR, "direction": "down","currentString": self.colorPath[square.color]["stringUsed"]})
                 square.isHalf = True
         else:
             if square.isHalf:
                 self.colorPath[square.color]["stringUsed"] += sqrt((abs(lastHole[0] - square.BL[0]) ** 2) + (abs(lastHole[1] - square.BL[1]) ** 2))
-                self.colorPath[square.color]["path"].append({"hole": square.BL, "direction": "up"})
+                self.colorPath[square.color]["path"].append({"hole": square.BL, "direction": "up","currentString": self.colorPath[square.color]["stringUsed"]})
                 self.colorPath[square.color]["stringUsed"] += sqrt(2)
-                self.colorPath[square.color]["path"].append({"hole": square.TR, "direction": "down"})
+                self.colorPath[square.color]["path"].append({"hole": square.TR, "direction": "down","currentString": self.colorPath[square.color]["stringUsed"]})
                 square.completed = True
                 self.colorPath[square.color]["completed"] += 1
+                self.colorPath[square.color]["left"] -= 1
+                self.squaresLeft.remove(square)
             else:
                 self.colorPath[square.color]["stringUsed"] += sqrt((abs(lastHole[0] - square.BR[0]) ** 2) + (abs(lastHole[1] - square.BR[1]) ** 2))
-                self.colorPath[square.color]["path"].append({"hole": square.BR, "direction": "up"})
+                self.colorPath[square.color]["path"].append({"hole": square.BR, "direction": "up","currentString": self.colorPath[square.color]["stringUsed"]})
                 self.colorPath[square.color]["stringUsed"] += sqrt(2)
-                self.colorPath[square.color]["path"].append({"hole": square.TL, "direction": "down"})
+                self.colorPath[square.color]["path"].append({"hole": square.TL, "direction": "down","currentString": self.colorPath[square.color]["stringUsed"]})
                 square.isHalf = True
         # print("Colored: {},{} {}".format(square.X,square.Y,self.colorPath[square.color]["left"]))
         return True
@@ -104,23 +112,26 @@ class Canvas:
         return stringUsed
 
     def cutString(self):
-        if len(self.colorPath[self.activeString]['path']) == 0:
+        try:
+            if not self.colorPath[self.activeString]['path'][-1]["hole"]:
+                return False
+        except:
             return False
         self.colorPath[self.activeString]["stringUsed"] += 5
-        self.colorPath[self.activeString]["path"].append({"hole": None, "direction": "cut"})
+        self.colorPath[self.activeString]["path"].append({"hole": None, "direction": "cut","currentString": self.colorPath[self.activeString]["stringUsed"]})
         return True
 
     def generateMashed(self):
         lst = []
         for sq in self.squares:
-            lst.append(sq.BL[0])
-            lst.append(sq.BL[1])
-            lst.append(sq.BR[0])
-            lst.append(sq.BR[1])
-            lst.append(sq.TL[0])
-            lst.append(sq.TL[1])
-            lst.append(sq.TR[0])
-            lst.append(sq.TR[1])
+            # lst.append(sq.BL[0])
+            # lst.append(sq.BL[1])
+            # lst.append(sq.BR[0])
+            # lst.append(sq.BR[1])
+            # lst.append(sq.TL[0])
+            # lst.append(sq.TL[1])
+            # lst.append(sq.TR[0])
+            # lst.append(sq.TR[1])
             lst.append(sq.X)
             lst.append(sq.Y)
             lst.append(sq.color)
@@ -144,10 +155,6 @@ def matrixToSquares(matrix):
             if sq not in colors:
                 colors.append(sq)
     return squares, colors
-
-
-
-
 
 
 
